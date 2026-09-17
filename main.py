@@ -53,17 +53,18 @@ def init_db_and_seed():
                     Kiosk,
                     KioskStatus,
                 )
-                from auth import get_password_hash
                 from datetime import date, time
 
                 # 1. Super Admin
                 admin = db.query(AdminUser).first()
                 if not admin:
                     print("[Info] No admin user found. Seeding default super-admin...")
+                    # Pre-computed standard bcrypt hash for 'password123' to guarantee zero startup dependency on bcrypt runtime
+                    admin_hash = "$2b$12$bj9ociy8LD1LpKYnSkBSl.pPncL.pyZuQsgv6s3Sf1lz4P7MedTI."
                     admin = AdminUser(
                         name="Admin User",
                         email="admin@example.com",
-                        password_hash=get_password_hash("password123"),
+                        password_hash=admin_hash,
                         role=AdminRole.super_admin,
                     )
                     db.add(admin)
