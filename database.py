@@ -7,20 +7,35 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 load_dotenv()
 
 # Support Railway, Supabase, Neon, Render environment variables
-DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("DATABASE_PUBLIC_URL")
+raw_url = (
+    os.getenv("DATABASE_URL")
+    or os.getenv("DATABASE_PUBLIC_URL")
+    or os.getenv("POSTGRES_URL")
+)
+
+DATABASE_URL = raw_url.strip().strip("'\"") if raw_url else None
 
 if DATABASE_URL:
     # Providers like Railway, Supabase, Heroku often use postgres:// which SQLAlchemy 2.0 rejects
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_DATABASE_URL = DATABASE_URL
+
+    try:
+        parsed = urllib.parse.urlparse(SQLALCHEMY_DATABASE_URL)
+        print(f"[DB Info] Configured DATABASE_URL -> Host: {parsed.hostname}, Port: {parsed.port}, DB: {parsed.path.lstrip('/')}")
+    except Exception:
+        print("[DB Info] Configured DATABASE_URL (custom format)")
 else:
-    DB_HOST = os.getenv("DB_HOST", "localhost")
-    DB_PORT = os.getenv("DB_PORT", "5432")
-    DB_NAME = os.getenv("DB_NAME", "busBooking_db")
-    DB_USER = os.getenv("DB_USER", "postgres")
-    DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+    # Fallback to individual connection parameters or Railway's PG* variables
+    DB_HOST = os.getenv("PGHOST") or os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("PGPORT") or os.getenv("DB_PORT", "5432")
+    DB_NAME = os.getenv("PGDATABASE") or os.getenv("DB_NAME", "busBooking_db")
+    DB_USER = os.getenv("PGUSER") or os.getenv("DB_USER", "postgres")
+    DB_PASSWORD = os.getenv("PGPASSWORD") or os.getenv("DB_PASSWORD", "")
     DB_SSLMODE = os.getenv("DB_SSLMODE", "")
+
+    print(f"[DB Warning] No DATABASE_URL found! Falling back to Host: {DB_HOST}:{DB_PORT}, DB: {DB_NAME}")
 
     encoded_password = urllib.parse.quote_plus(DB_PASSWORD) if DB_PASSWORD else ""
     auth_part = f"{DB_USER}:{encoded_password}@" if encoded_password else (f"{DB_USER}@" if DB_USER else "")
