@@ -32,6 +32,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
             if isinstance(hashed_password, str)
             else hashed_password
         )
+        # Standard bcrypt has a 72-byte input limitation
+        if len(plain_bytes) > 72:
+            plain_bytes = plain_bytes[:72]
         return bcrypt.checkpw(plain_bytes, hashed_bytes)
     except Exception:
         return False
@@ -41,6 +44,8 @@ def get_password_hash(password: str) -> str:
     pwd_bytes = (
         password.encode("utf-8") if isinstance(password, str) else password
     )
+    if len(pwd_bytes) > 72:
+        pwd_bytes = pwd_bytes[:72]
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 

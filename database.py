@@ -31,9 +31,11 @@ def get_clean_database_url() -> str:
         else:
             try:
                 u = make_url(candidate)
-                if u.host:
+                # Support PostgreSQL hosts and local SQLite database files
+                if u.host or candidate.startswith("sqlite"):
+                    host_label = u.host or "sqlite"
                     print(
-                        f"[DB Info] Successfully loaded DATABASE_URL -> Host: {u.host}, Port: {u.port}, DB: {u.database}"
+                        f"[DB Info] Successfully loaded DATABASE_URL -> Host: {host_label}, Port: {u.port}, DB: {u.database}"
                     )
                     return candidate
                 else:
@@ -72,15 +74,22 @@ def get_clean_database_url() -> str:
 SQLALCHEMY_DATABASE_URL = get_clean_database_url()
 
 try:
-    engine = create_engine(
-        SQLALCHEMY_DATABASE_URL,
-        pool_pre_ping=True,
-        pool_recycle=300,
-    )
+    # pool_pre_ping and pool_recycle are for pooled DBs (Postgres); SQLite needs check_same_thread=False
+    if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+        engine = create_engine(
+            SQLALCHEMY_DATABASE_URL,
+            connect_args={"check_same_thread": False},
+        )
+    else:
+        engine = create_engine(
+            SQLALCHEMY_DATABASE_URL,
+            pool_pre_ping=True,
+            pool_recycle=300,
+        )
 except Exception as e:
     print(f"[DB Critical Error] Failed to create engine with URL: {e}")
     # Fallback in-memory engine so Uvicorn does not crash on import
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
