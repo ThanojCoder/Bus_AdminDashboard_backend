@@ -63,6 +63,7 @@ class PaymentStatusEnum(str, enum.Enum):
 
 class BookingStatusEnum(str, enum.Enum):
     confirmed = "confirmed"
+    pending = "pending"
     cancelled = "cancelled"
 
 

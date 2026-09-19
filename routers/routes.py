@@ -149,6 +149,15 @@ def delete_route(id: int, db: Session = Depends(get_db), current_user: AdminUser
     db.commit()
     return {"message": "Route deactivated"}
 
+@router.post("/{id}/activate")
+def activate_route(id: int, db: Session = Depends(get_db), current_user: AdminUser = Depends(get_current_user)):
+    db_route = db.query(Route).filter(Route.id == id).first()
+    if not db_route:
+        raise HTTPException(status_code=404, detail="Route not found")
+    db_route.is_active = True
+    db.commit()
+    return {"message": "Route activated"}
+
 # Route-Bus Assignments
 @router.post("/{id}/buses", response_model=AssignmentResponse)
 def assign_bus_to_route(id: int, assignment: AssignmentCreate, db: Session = Depends(get_db), current_user: AdminUser = Depends(get_current_user)):

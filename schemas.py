@@ -140,6 +140,21 @@ class AssignmentResponse(BaseModel):
 
 
 # --- Trips ---
+class TripCreate(BaseModel):
+    route_id: int
+    bus_id: int
+    travel_date: date
+    departure_time: str
+    trip_duration: Optional[str] = "8h"
+
+
+class TripUpdate(BaseModel):
+    travel_date: Optional[date] = None
+    departure_time: Optional[str] = None
+    trip_duration: Optional[str] = None
+    status: Optional[TripStatus] = None
+
+
 class TripResponse(BaseModel):
     id: int
     route_id: int

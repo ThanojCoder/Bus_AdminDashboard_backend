@@ -10,7 +10,7 @@ if str(BASE_DIR) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base, SessionLocal
-from routers import auth, routes, buses, tickets, kiosks, reports
+from routers import auth, routes, buses, tickets, kiosks, reports, trips
 
 app = FastAPI(title="Bus Booking Admin Dashboard API", version="1.0.0")
 
@@ -28,6 +28,7 @@ app.include_router(buses.router)
 app.include_router(tickets.router)
 app.include_router(kiosks.router)
 app.include_router(reports.router)
+app.include_router(trips.router)
 
 
 def init_db_and_seed():

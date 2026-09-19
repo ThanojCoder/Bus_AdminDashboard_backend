@@ -13,6 +13,14 @@ def resolve_date_range(range_name: str) -> tuple[date, date]:
     today = date.today()
     r = (range_name or "today").lower().strip()
     
+    # Check for direct custom date (YYYY-MM-DD)
+    if len(r) == 10 and r[4] == '-' and r[7] == '-':
+        try:
+            d = datetime.strptime(r, "%Y-%m-%d").date()
+            return d, d
+        except Exception:
+            pass
+
     if r == "yesterday":
         yest = today - timedelta(days=1)
         return yest, yest

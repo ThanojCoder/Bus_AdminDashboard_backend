@@ -82,6 +82,15 @@ def delete_bus(id: int, db: Session = Depends(get_db), current_user: AdminUser =
     db.commit()
     return {"message": "Bus deactivated"}
 
+@router.post("/{id}/activate")
+def activate_bus(id: int, db: Session = Depends(get_db), current_user: AdminUser = Depends(get_current_user)):
+    db_bus = db.query(Bus).filter(Bus.id == id).first()
+    if not db_bus:
+        raise HTTPException(status_code=404, detail="Bus not found")
+    db_bus.is_active = True
+    db.commit()
+    return {"message": "Bus activated"}
+
 @router.post("/{id}/release-seats")
 def release_bus_seats(id: int, db: Session = Depends(get_db), current_user: AdminUser = Depends(get_current_user)):
     db_bus = db.query(Bus).filter(Bus.id == id).first()
